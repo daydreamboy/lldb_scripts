@@ -1,9 +1,0 @@
-# An example of .lldbinit
-
-#command script import /usr/local/opt/chisel/libexec/fblldb.py
-#command script import ~/lldb/lldb_commands/dslldb.py
-
-command script import ~/GitHub_Projects/chisel/fblldb.py
-command script import ~/lldb_scripts/lldb_command_write.py
-command regex ivars -h "Dumps all ivars for an instance of a particular class which inherits from NSObject (iOS, NSObject subclass only)" -s "ivars [UIView new]" -- 's/(.+)/expression -lobjc -O -- [%1 _ivarDescription]/'
-
