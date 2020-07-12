@@ -127,6 +127,16 @@ command alias -H "Reload ~/.lldbinit" -h "Reload ~/.lldbinit" -- reload_lldbinit
 
 
 
+### （7）args
+
+读取方法Call Convention的1-6个参数，配置代码，如下
+
+```python
+command alias args register read arg1 arg2 arg3 arg4 arg5 arg6
+```
+
+
+
 
 
 ## 2、LLDB scripts

@@ -16,3 +16,5 @@ command regex -h "Toggle view. Hides/Shows a view depending on it's current stat
 command regex -h "Regex search" -s "rlook UIViewController.viewDidLoad" -- rlook 's/(.+)/image lookup -rn %1/'
 # reload_lldbinit
 command alias -H "Reload ~/.lldbinit" -h "Reload ~/.lldbinit" -- reload_lldbinit command source ~/.lldbinit
+# args
+command alias args register read arg1 arg2 arg3 arg4 arg5 arg6
