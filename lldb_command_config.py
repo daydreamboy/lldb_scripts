@@ -12,6 +12,7 @@ def handle_call(debugger, raw_args, result, internal_dict):
     if not os.path.exists(config_filepath):
         return
 
+    # JSON escaped string: @see https://stackoverflow.com/questions/25242262/dump-to-json-adds-additional-double-quotes-and-escaping-of-quotes
     with open(config_filepath, 'r') as file:
         separators = (',', ':')
         json_object = json.load(file)
