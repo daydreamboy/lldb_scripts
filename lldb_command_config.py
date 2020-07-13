@@ -1,16 +1,4 @@
 
-"""
-a script for providing `write` command in lldb session
-
-Usage:
-1. place this script at ~/lldb
-2. add command script import ~/lldb/lldb_command_write.py to ~/.lldbinit
-3. write -h to see help info
-
-@see https://github.com/4iar/lldb-write
-"""
-
-
 from __future__ import print_function
 import lldb
 import os
