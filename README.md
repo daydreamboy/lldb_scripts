@@ -137,6 +137,19 @@ command alias args register read arg1 arg2 arg3 arg4 arg5 arg6
 
 
 
+### （8）python_version
+
+打印python的版本[^3]。配置代码，如下
+
+```python
+# python_version
+command alias -H "Check Python version" -h "Check Python version" -- python_version script import sys; print(sys.version)
+```
+
+
+
+
+
 
 
 ## 2、LLDB scripts
@@ -213,4 +226,6 @@ def load_python_scripts_dir(dir_name):
 [^1]:https://github.com/DerekSelander/LLDB
 
 [^2]:https://github.com/DerekSelander/LLDB/blob/master/lldb_commands/dslldb.py
+
+[^3]:https://stackoverflow.com/questions/1093322/how-do-i-check-what-version-of-python-is-running-my-script
 

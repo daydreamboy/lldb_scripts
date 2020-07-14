@@ -18,3 +18,5 @@ command regex -h "Regex search" -s "rlook UIViewController.viewDidLoad" -- rlook
 command alias -H "Reload ~/.lldbinit" -h "Reload ~/.lldbinit" -- reload_lldbinit command source ~/.lldbinit
 # args
 command alias args register read arg1 arg2 arg3 arg4 arg5 arg6
+# python_version
+command alias -H "Check Python version" -h "Check Python version" -- python_version script import sys; print(sys.version)
