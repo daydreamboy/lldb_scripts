@@ -148,6 +148,17 @@ command alias -H "Check Python version" -h "Check Python version" -- python_vers
 
 
 
+### （9）pimage
+
+打印UIImage的debug信息。配置代码，如下
+
+```python
+# pimage
+command regex pimage 's/(.+)/expression -lobjc -O -- @import Foundation; NSMutableString *_debugInfoM_ = [NSMutableString string]; UIImage *_image_ = (UIImage *)%1; if ([_image_ isKindOfClass:[UIImage class]]) { NSString *_fileName_ = nil; NSString *_containerBundlePath_ = nil; if ([_image_ respondsToSelector:@selector(imageAsset)]) { UIImageAsset *imageAsset = _image_.imageAsset; _fileName_ = [imageAsset valueForKey:@"_assetName"]; _containerBundlePath_ = [imageAsset valueForKey:@"_containingBundle"]; } _debugInfoM_ = [[NSMutableString alloc] initWithFormat:@"<%@: %p> %@ %@ %@", [_image_ class], _image_, _fileName_, (id)NSStringFromCGSize(_image_.size), (NSString *)[_containerBundlePath_ bundlePath]]; } _debugInfoM_;/'
+```
+
+
+
 
 
 
