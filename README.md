@@ -159,6 +159,15 @@ command regex pimage 's/(.+)/expression -lobjc -O -- @import Foundation; NSMutab
 
 
 
+// TODO
+
+```
+(lldb) visualize attrStringM
+NSConcreteMutableAttributedString isn't supported. You can visualize UIImage, CGImageRef, UIView, CALayer, NSData, UIColor, CIColor, or CGColorRef.
+```
+
+
+
 
 
 

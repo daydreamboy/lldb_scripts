@@ -33,6 +33,7 @@ def parse_args(raw_args):
     parser.add_argument('-f', '--filename', help='The file name to write. If not given, use lldb_output_<timestamp>.txt instead')
     parser.add_argument('command', nargs='+', help='The LLDB commands')
     parser.add_argument('-d', '--debug', action='store_true', help='Turn on debug mode')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Write also lldb command')
 
     args = parser.parse_args(raw_args.split(' '))
 
@@ -44,12 +45,13 @@ def parse_args(raw_args):
     return args
 
 
-def write_to_file(filename, command, output):
+def write_to_file(filename, command, output, verbose=False):
     """Write the output to the given file, headed by the command"""
     file_path = os.path.expanduser('~/' + filename)
     f = open(file_path, 'w')
 
-    f.write('(lldb) ' + command + '\n\n')
+    if verbose:
+        f.write('(lldb) ' + command + '\n\n')
     if output is not None:
         f.write(output)
     f.close()
@@ -68,9 +70,12 @@ def handle_call(debugger, raw_args, result, internal_dict):
     interpreter.HandleCommand(args.command, res)
 
     output = res.GetOutput() or res.GetError()
+    print('******')
     print(res)
+    print('----------')
     print(output, end='')
-    write_to_file(args.filename, args.command, output)
+    print('######')
+    write_to_file(args.filename, args.command, output, args.verbose)
 
 
 def __lldb_init_module(debugger, internal_dict):
