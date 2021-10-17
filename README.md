@@ -5,7 +5,7 @@
 
 ## 1、LLDB commands[^1]
 
-### （1）ivars
+### (1) ivars
 
 ivars命令查看对象的实例变量
 
@@ -22,7 +22,7 @@ command regex ivars -h "Dumps all ivars for an instance of a particular class wh
 
 
 
-### （2）methods/methods_r
+### (2) methods/methods_r
 
 methods命令查看对象的所有方法，methods_r命令查看对象的所有方法以及父类的所有方法
 
@@ -43,7 +43,7 @@ command regex methods_r -h "Dumps all methods implemented by the NSObject subcla
 
 
 
-### （3）pprotocol
+### (3) pprotocol
 
 打印某个协议的所有方法 (仅适用于Objective-C代码)
 
@@ -87,7 +87,7 @@ Protocol: UITableViewDataSource, <Protocol: 0x7fff89e22458>
 
 
 
-### （4）tv
+### (4) tv
 
 tv命令用于切换UIView对象的hidden状态
 
@@ -104,7 +104,7 @@ command regex -h "Toggle view. Hides/Shows a view depending on it's current stat
 
 
 
-### （5）rlook
+### (5) rlook
 
 配置代码，如下
 
@@ -115,7 +115,7 @@ command regex -h "Regex search" -s "rlook UIViewController.viewDidLoad" -- rlook
 
 
 
-### （6）reload_lldbinit
+### (6) reload_lldbinit
 
 当.lldbinit文件内容被修改，可以不用重新启动lldb，使用reload_lldbinit命令重新加载.lldbinit文件
 
@@ -127,7 +127,7 @@ command alias -H "Reload ~/.lldbinit" -h "Reload ~/.lldbinit" -- reload_lldbinit
 
 
 
-### （7）args
+### (7) args
 
 读取方法Call Convention的1-6个参数，配置代码，如下
 
@@ -137,7 +137,7 @@ command alias args register read arg1 arg2 arg3 arg4 arg5 arg6
 
 
 
-### （8）python_version
+### (8) python_version
 
 打印python的版本[^3]。配置代码，如下
 
@@ -148,7 +148,7 @@ command alias -H "Check Python version" -h "Check Python version" -- python_vers
 
 
 
-### （9）pimage
+### (9) pimage
 
 打印UIImage的debug信息。配置代码，如下
 
@@ -174,9 +174,7 @@ NSConcreteMutableAttributedString isn't supported. You can visualize UIImage, CG
 
 ## 2、LLDB scripts
 
-
-
-### （1）write命令
+### (1) write命令
 
 ```python
 command script import ~/lldb_scripts/lldb_command_write.py
@@ -192,13 +190,9 @@ command script import ~/lldb_scripts/lldb_command_write.py
 
 
 
+## 3、配置.lldbinit文件
 
-
-## 附录
-
-### 1、配置.lldbinit文件
-
-#### （1）lldb_commands.py[^2]
+### (1) lldb_commands.py[^2]
 
 .lldbinit文件位于~/.lldbinit，增加下面一行命令，如下
 
