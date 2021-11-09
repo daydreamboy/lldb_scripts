@@ -6,6 +6,7 @@ Usage:
 1. place this script at ~/lldb
 2. create an All Objective-C Exceptions breakpoint by Xcode
 3. add a new Debugger Command, and type the formatted command
+
 ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> ...
 
 @see https://stackoverflow.com/a/19262247
@@ -16,7 +17,7 @@ import re
 import shlex
 
 gFlagVerbose = True
-gLogTag = 'FilterException'
+gLogTag = 'lld_scripts'
 
 # This script allows Xcode to selectively ignore Obj-C exceptions
 # based on any selector on the NSException instance
@@ -38,7 +39,7 @@ def call_method_on_exception(frame, register, method):
         "(NSString *)[(NSException *)${0} {1}]".format(register, method)).GetObjectDescription()
 
 
-def filterException(debugger, user_input, result, unused):
+def handle_call(debugger, user_input, result, unused):
     target = debugger.GetSelectedTarget()
     frame = target.GetProcess().GetSelectedThread().GetFrameAtIndex(0)
 
@@ -50,12 +51,12 @@ def filterException(debugger, user_input, result, unused):
         return None
 
     # Note: user_input is the string after the command ignore_specified_objc_exceptions
-    filters = shlex.split(user_input)
+    filterKeyValuePairs = shlex.split(user_input)
 
     register = get_register_name(target)
 
-    for filter in filters:
-        method, regexp_str = filter.split(":", 1)
+    for filterKeyValuePair in filterKeyValuePairs:
+        method, regexp_str = filterKeyValuePair.split(":", 1)
         value = call_method_on_exception(frame, register, method)
 
         if value is None:
@@ -84,7 +85,7 @@ def filterException(debugger, user_input, result, unused):
 def __lldb_init_module(debugger, unused):
     """Initialize the ignore_specified_objc_exceptions command within lldb"""
 
-    debugger.HandleCommand('command script add --function ignore_specified_objc_exceptions.filterException ignore_specified_objc_exceptions')
+    debugger.HandleCommand('command script add --function ignore_specified_objc_exceptions.handle_call ignore_specified_objc_exceptions')
 
     print('The "ignore_specified_objc_exceptions" command has been loaded and is ready for use.')
 
