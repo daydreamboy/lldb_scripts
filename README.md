@@ -190,6 +190,23 @@ command script import ~/lldb_scripts/lldb_command_write.py
 
 
 
+### (2) ignore_specified_objc_exceptions命令
+
+使用方法，如下
+
+```
+Usage:
+1. place this script at ~/lldb
+2. create an All Objective-C Exceptions breakpoint by Xcode
+3. add a new Debugger Command, and type the formatted command
+
+ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> ...
+```
+
+> 代码见，ignore_specified_objc_exceptions.py
+
+
+
 ## 3、配置.lldbinit文件
 
 ### (1) lldb_commands.py[^2]
