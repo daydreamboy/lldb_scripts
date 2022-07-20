@@ -26,6 +26,7 @@ def load_python_scripts_dir(dir_name):
         if file.endswith('.py'):
             cmd = 'command script import '
         elif file.endswith('.txt'):
+            # Note: remove -e0 -s1 to show error message
             cmd = 'command source -e0 -s1 '
         else:
             continue

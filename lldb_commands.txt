@@ -22,3 +22,5 @@ command alias args register read arg1 arg2 arg3 arg4 arg5 arg6
 command alias -H "Check Python version" -h "Check Python version" -- python_version script import sys; print(sys.version)
 # pimage
 command regex pimage 's/(.+)/expression -lobjc -O -- @import Foundation; NSMutableString *_debugInfoM_ = [NSMutableString string]; UIImage *_image_ = (UIImage *)%1; if ([_image_ isKindOfClass:[UIImage class]]) { NSString *_fileName_ = nil; NSString *_containerBundlePath_ = nil; if ([_image_ respondsToSelector:@selector(imageAsset)]) { UIImageAsset *imageAsset = _image_.imageAsset; _fileName_ = [imageAsset valueForKey:@"_assetName"]; _containerBundlePath_ = [imageAsset valueForKey:@"_containingBundle"]; } _debugInfoM_ = [[NSMutableString alloc] initWithFormat:@"<%@: %p> %@ %@ %@", [_image_ class], _image_, _fileName_, (id)NSStringFromCGSize(_image_.size), (NSString *)[_containerBundlePath_ bundlePath]]; } _debugInfoM_;/'
+# paddr
+command regex paddr -h "Print memory address in Swift code" -s "paddr 0x123" -- 's/(.+)/expression -lswift -O -- unsafeBitCast(%1, to: NSObject.self)/'

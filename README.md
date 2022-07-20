@@ -159,6 +159,22 @@ command regex pimage 's/(.+)/expression -lobjc -O -- @import Foundation; NSMutab
 
 
 
+### (10) paddr
+
+在Swift中打印内存地址[^4]。
+
+配置代码，如下
+
+```python
+command regex paddr -h "Print memory address in Swift code" -s "paddr 0x123" -- 's/(.+)/expression -lswift -O -- unsafeBitCast(%1, to: NSObject.self)/'
+```
+
+
+
+
+
+
+
 // TODO
 
 ```
@@ -259,4 +275,6 @@ def load_python_scripts_dir(dir_name):
 [^2]:https://github.com/DerekSelander/LLDB/blob/master/lldb_commands/dslldb.py
 
 [^3]:https://stackoverflow.com/questions/1093322/how-do-i-check-what-version-of-python-is-running-my-script
+
+[^4]:https://stackoverflow.com/questions/29441418/lldb-swift-casting-raw-address-into-usable-type
 
