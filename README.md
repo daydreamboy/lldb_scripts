@@ -223,17 +223,17 @@ ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> .
 
 
 
-## 3、配置.lldbinit文件
+## 3、配置`.lldbinit`文件
 
 ### (1) lldb_commands.py[^2]
 
-.lldbinit文件位于~/.lldbinit，增加下面一行命令，如下
+`.lldbinit`文件位于`~/.lldbinit`，增加下面一行命令，如下
 
 ```shell
 command script import ~/lldb_scripts/lldb_commands.py
 ```
 
-​       lldb_commands.py是加载lldb命令批量文件（lldb_commands.txt），和其他同级目录下python脚本的启动脚本，内容如下
+lldb_commands.py是加载lldb命令批量文件（lldb_commands.txt），和其他同级目录下python脚本的启动脚本，内容如下
 
 ```python
 import lldb
