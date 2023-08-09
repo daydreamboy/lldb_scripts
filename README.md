@@ -225,7 +225,7 @@ ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> .
 
 ## 3、配置`.lldbinit`文件
 
-### (1) lldb_commands.py[^2]
+### (1) lldb_load_commands.py[^2]
 
 `.lldbinit`文件位于`~/.lldbinit`，增加下面一行命令，如下
 
