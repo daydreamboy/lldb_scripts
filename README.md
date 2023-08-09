@@ -230,10 +230,15 @@ ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> .
 `.lldbinit`文件位于`~/.lldbinit`，增加下面一行命令，如下
 
 ```shell
-command script import ~/lldb_scripts/lldb_commands.py
+command script import ~/lldb_scripts/lldb_load_commands.py
 ```
 
-lldb_commands.py是加载lldb命令批量文件（lldb_commands.txt），和其他同级目录下python脚本的启动脚本，内容如下
+lldb_load_commands.py的作用是批量加载lldb命令
+
+* 读取lldb_commands.txt文件
+* 同级目录下python脚本
+
+python脚本的内容，示例如下
 
 ```python
 import lldb
@@ -262,7 +267,7 @@ def load_python_scripts_dir(dir_name):
             lldb.debugger.HandleCommand(cmd + fullpath)
 ```
 
-使用HandleCommand来执行command script或command source命令。
+这里使用HandleCommand函数来执行command script或command source命令。
 
 
 
