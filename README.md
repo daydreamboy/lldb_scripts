@@ -1,9 +1,23 @@
 # lldb_scripts
 [TOC]
 
+## 1、自定义lldb命令
+
+本文主要介绍如何自定义lldb命令，不涉及lldb中的调试（参考HelloLLDB工程）。
+
+创建自定义lldb命令，主要有两种方式
+
+* 创建简短命令
+  * 主要是将较长的命令和参数，定义别名，方便快捷使用
+  * 参考“LLDB commands”一节
+
+* 创建python脚本，脚本提供命令
+  * 主要通过脚本完成复杂的功能，比如下载pod库的源码，关联当前二进制文件等
+  * 参考“LLDB scripts”一节
 
 
-## 1、LLDB commands[^1]
+
+## 2、LLDB commands[^1]
 
 ### (1) ivars
 
@@ -188,7 +202,7 @@ NSConcreteMutableAttributedString isn't supported. You can visualize UIImage, CG
 
 
 
-## 2、LLDB scripts
+## 3、LLDB scripts
 
 ### (1) write命令
 
@@ -223,7 +237,7 @@ ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> .
 
 
 
-## 3、配置`.lldbinit`文件
+## 4、配置`.lldbinit`文件
 
 ### (1) lldb_load_commands.py[^2]
 
