@@ -23,7 +23,7 @@ def load_python_scripts_dir(dir_name):
     this_files_basename = os.path.basename(__file__)
     cmd = ''
     for file in os.listdir(dir_name):
-        if file.endswith('.py'):
+        if file.endswith('.py') and file.startswith('lldb_command_'):
             cmd = 'command script import '
         elif file.endswith('.txt'):
             # Note: remove -e0 -s1 to show error message

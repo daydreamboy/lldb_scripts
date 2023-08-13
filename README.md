@@ -250,7 +250,7 @@ command script import ~/lldb_scripts/lldb_load_commands.py
 lldb_load_commands.py的作用是批量加载lldb命令
 
 * 读取lldb_commands.txt文件
-* 同级目录下python脚本
+* 同级目录下带前缀`lldb_command_`的python脚本
 
 python脚本的内容，示例如下
 
@@ -269,7 +269,7 @@ def load_python_scripts_dir(dir_name):
     this_files_basename = os.path.basename(__file__)
     cmd = ''
     for file in os.listdir(dir_name):
-        if file.endswith('.py'):
+        if file.endswith('.py') and file.startswith('lldb_command_'):
             cmd = 'command script import '
         elif file.endswith('.txt'):
             cmd = 'command source -e0 -s1 '
