@@ -15,6 +15,7 @@ ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> .
 import lldb
 import re
 import shlex
+import os
 
 gFlagVerbose = True
 gLogTag = 'lld_scripts'
@@ -84,8 +85,10 @@ def handle_call(debugger, user_input, result, unused):
 
 def __lldb_init_module(debugger, unused):
     """Initialize the ignore_specified_objc_exceptions command within lldb"""
-
-    debugger.HandleCommand('command script add --function ignore_specified_objc_exceptions.handle_call ignore_specified_objc_exceptions')
-
-    print('The "ignore_specified_objc_exceptions" command has been loaded and is ready for use.')
+    # Note: keep the file name with format `lldb_command_xxx` which xxx is the lldb command
+    prefix = 'lldb_command_'
+    filename = os.path.splitext(os.path.basename(__file__))[0]
+    command_name = filename.replace(prefix, '')
+    debugger.HandleCommand(f'command script add --function {filename}.handle_call {command_name}')
+    print(f'The "{command_name}" command has been loaded and is ready for use.')
 
