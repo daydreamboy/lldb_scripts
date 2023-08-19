@@ -22,21 +22,22 @@ def show_source_code(debugger, command, result, internal_dict):
 
     parser = OptionParser()
 
-    parser.add_option("-p", "--process",
-                      action="store_true", default=False,
-                      help="process all threads frames source code debug")
-    parser.add_option("-t", "--thread",
-                      action="store_true", default=False,
-                      help="current thread all frames source code debug")
-
     parser.add_option("-f", "--frame", action="store_true", default=True,
                       help="current frame source code debug")
-    
-    parser.add_option("-d", "--debug", action="store_true", default=False,
-                      help="current frame source code debug")
+
+    parser.add_option("-p", "--process",
+                      action="store_true", default=False,
+                      help="process all threads frames source code mapping")
+
+    parser.add_option("-t", "--thread",
+                      action="store_true", default=False,
+                      help="current thread all frames source code mapping")
 
     parser.add_option("-c", "--clean", action="store_true", default=False,
                       help="clean global memory data, e.g. env file")
+
+    parser.add_option("-d", "--debug", action="store_true", default=False,
+                      help="current frame source code debug")
 
     (options, args) = parser.parse_args(command_args)
 
@@ -45,13 +46,13 @@ def show_source_code(debugger, command, result, internal_dict):
     executable_path = debugger.GetSelectedTarget().GetExecutable().GetDirectory()
     print("executablePath: " + executable_path)
 
-    if options.process == True:
+    if options.thread:
         print("process all frames target source map")
-        process_all_frame_map(executable_path, debugger)
-    elif options.thread == True:
-        print("thread all frames target source map")
         thread_all_frame_map(executable_path, debugger)
-    elif options.clean == True:
+    elif options.process:
+        print("thread all frames target source map")
+        process_all_frame_map(executable_path, debugger)
+    elif options.clean:
         globals().pop('_show_source_code_env', None)
         print("Done!🍺🍺🍺")
     else:
@@ -64,14 +65,7 @@ def show_source_code(debugger, command, result, internal_dict):
             print('Error: No debug info for the selected frame')
             return
         success = target_source_map(source_info, executable_path, debugger)
-        if not success:
-            failedLibs.add(source_info)
-
-    for fLib in failedLibs:
-        print(fLib + "源码调试失败 failed")
-    if len(failedLibs) > 0:
-        print("TODO")
-    failedLibs = set()
+        print(f'[Error] mapping {source_info} failed') if success is False else None
 
 
 def get_pod_info_dict(source_info):
@@ -120,10 +114,12 @@ def get_pod_version(pod_name, executable_path):
         print(f"local pod version: `{output}`")
     except subprocess.CalledProcessError as e:
         print("Command execution failed!")
-    map = json.loads(output)
-    pod_version = map[pod_name]
+    pod_dict = json.loads(output)
+    if pod_name in pod_dict:
+        pod_version = pod_dict[pod_name]
+        return pod_version
 
-    return pod_version
+    return None
 
 
 def get_podfile_lock_file_path(derived_data_path):
@@ -173,12 +169,25 @@ def get_env_dict():
 
 
 def get_git_info_dict(pod_name, pod_version):
+    podspec_file_path = f'/tmp/show_source_code/{pod_name}-{pod_version}.json'
     env_dict = get_env_dict()
-    url = env_dict['podspec_query_api'].strip(" '\"")
-    formatted_url = url.format(pod_name=pod_name, pod_version=pod_version)
-    print(f'request url: {formatted_url}')
-    contents = urlopen(formatted_url).read()
-    content_dict = json.loads(contents)
+    content_dict = {}
+
+    # Note: if SNAPSHOT version always query server to get latest podspec
+    if os.path.isfile(podspec_file_path) and 'snapshot' not in pod_version.lower():
+        with open(podspec_file_path) as f:
+            content = f.read()
+            content_dict = json.loads(content)
+            f.close()
+
+    if len(content_dict) == 0:
+        url = env_dict['podspec_query_api'].strip(" '\"")
+        formatted_url = url.format(pod_name=pod_name, pod_version=pod_version)
+        print(f'request url: {formatted_url}')
+        content = urlopen(formatted_url).read()
+        content_dict = json.loads(content)
+    else:
+        print(f'Use cached podspec: {podspec_file_path}')
 
     git_url_key = env_dict['git_url_keypath'].strip(" '\"")
     git_commit_key = env_dict['git_commit_keypath'].strip(" '\"")
@@ -187,6 +196,10 @@ def get_git_info_dict(pod_name, pod_version):
         'git_url': tool_get_value_by_key_path(content_dict, git_url_key),
         'git_commit': tool_get_value_by_key_path(content_dict, git_commit_key),
     }
+
+    with open(podspec_file_path, "w") as f:
+        f.write(json.dumps(content_dict))
+        f.close()
 
     return dict_value
 
@@ -263,6 +276,10 @@ def target_source_map(source_info, executable_path, debugger):
         pod_build_prefix = pod_info_dict['pod_build_prefix']
         print(f'podName: {pod_name}')
         pod_version = get_pod_version(pod_name, executable_path)
+        if pod_version is None:
+            print(f'pod version query failed with pod name {pod_name}')
+            return False
+
         git_info = get_git_info_dict(pod_name, pod_version)
         git_url = git_info['git_url']
         git_commit = git_info['git_commit']
@@ -279,46 +296,61 @@ def target_source_map(source_info, executable_path, debugger):
 
         map_string = ' '.join(lines)
         source_map_cmd = f'settings set target.source-map {map_string}'
-        print(f'execute {source_map_cmd}')
+        print(f'execute: {source_map_cmd}')
         print('Starting translate into source code...')
         debugger.HandleCommand(source_map_cmd)
 
         with open(source_map_file_path, "w") as f:
             f.write('\n'.join(lines))
+            f.close()
 
         print('Done!🍺🍺🍺')
 
         return True
 
 
-def process_all_frame_map(executablePath, debugger):
+def process_all_frame_map(executable_path, debugger):
+    hasOneFailed = False
+
     for thread in lldb.debugger.GetSelectedTarget().GetProcess():
-        lineEntrys = lldbutil.get_file_specs(thread)
-        for lineEntry in lineEntrys:
-            if lineEntry.GetDirectory() != None and lineEntry.GetFilename() != None:
+        lineEntries = lldbutil.get_file_specs(thread)
+        for lineEntry in lineEntries:
+            if lineEntry.GetDirectory() is not None and lineEntry.GetFilename() is not None:
                 path = lineEntry.GetDirectory() + "/" + lineEntry.GetFilename()
-                print("------- begin -------")
-                if not path in failedLibs:
-                    success = target_source_map(path, executablePath, debugger)
-                    if not success:
-                        failedLibs.add(path)
-                print("------- done -------\n\n")
+                success = target_source_map(path, executable_path, debugger)
+                print(f'[Error] mapping {path} failed') if success is False else None
+                if not hasOneFailed and not success:
+                    hasOneFailed = not success
+
+    if not hasOneFailed:
+        print('Done!🍺🍺🍺')
 
 
-def thread_all_frame_map(executablePath, debugger):
+def thread_all_frame_map(executable_path, debugger):
+    hasOneFailed = False
+
     thread = lldb.debugger.GetSelectedTarget().GetProcess().GetSelectedThread()
-    lineEntrys = lldbutil.get_file_specs(thread)
-    for lineEntry in lineEntrys:
-        if lineEntry.GetDirectory() != None and lineEntry.GetFilename() != None:
+    lineEntries = lldbutil.get_file_specs(thread)
+    for lineEntry in lineEntries:
+        if lineEntry.GetDirectory() is not None and lineEntry.GetFilename() is not None:
             path = lineEntry.GetDirectory() + "/" + lineEntry.GetFilename()
-            print("------- begin -------")
-            if not path in failedLibs:
-                success = target_source_map(path, executablePath, debugger)
-                if not success:
-                    failedLibs.add(path)
-            else:
-                print("failed")
-            print("------- done -------\n\n")
+            success = target_source_map(path, executable_path, debugger)
+            print(f'[Error] mapping {path} failed') if success is False else None
+            if not hasOneFailed and not success:
+                hasOneFailed = not success
+
+    if not hasOneFailed:
+        print('Done!🍺🍺🍺')
+
+
+def preload_map_info_on_lldb_start(debugger):
+    source_map_file_path = os.path.join('/tmp/show_source_code', 'source_map.txt')
+    lines = get_saved_map_string(source_map_file_path, '')
+    print(f'lines: {lines}')
+    map_string = ' '.join(lines)
+    source_map_cmd = f'settings set target.source-map {map_string}'
+    print(f'execute: {source_map_cmd}')
+    debugger.HandleCommand(source_map_cmd)
 
 
 def __lldb_init_module(debugger, internal_dict):
@@ -328,3 +360,6 @@ def __lldb_init_module(debugger, internal_dict):
     command_name = filename.replace(prefix, '')
     debugger.HandleCommand(f'command script add --help "二进制源码调试" -f {filename}.show_source_code {command_name}')
     print(f'The "{command_name}" command has been installed and is ready for use.')
+
+    preload_map_info_on_lldb_start(debugger)
+
