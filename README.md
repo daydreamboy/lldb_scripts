@@ -285,6 +285,12 @@ def load_python_scripts_dir(dir_name):
 
 
 
+## 5、lldb模块
+
+lldb提供一个名为lldb的python模块，该模块的API文档，见地址：https://lldb.llvm.org/python_reference/
+
+
+
 
 
 ## References

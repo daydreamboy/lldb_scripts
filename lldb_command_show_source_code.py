@@ -346,6 +346,8 @@ def thread_all_frame_map(executable_path, debugger):
 def preload_map_info_on_lldb_start(debugger):
     source_map_file_path = os.path.join('/tmp/show_source_code', 'source_map.txt')
     lines = get_saved_map_string(source_map_file_path, '')
+    if len(lines) == 0:
+        return 
     print(f'lines: {lines}')
     map_string = ' '.join(lines)
     source_map_cmd = f'settings set target.source-map {map_string}'
