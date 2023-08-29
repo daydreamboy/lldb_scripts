@@ -197,6 +197,7 @@ def get_git_info_dict(pod_name, pod_version):
         'git_commit': tool_get_value_by_key_path(content_dict, git_commit_key),
     }
 
+    os.makedirs(os.path.dirname(podspec_file_path), exist_ok=True)
     with open(podspec_file_path, "w") as f:
         f.write(json.dumps(content_dict))
         f.close()
@@ -261,7 +262,7 @@ def target_source_map(source_info, executable_path, debugger):
     source_file_path = source_info.split(": ").pop().split(':')[0]
 
     if os.path.isfile(source_file_path):
-        print('Warning: No binary need to debug. Source code is already available.')
+        print('[show_source_code] No binary need to debug. Source code is already available.')
         return True
     else:
         print(f"env_info: {get_env_dict()}")
