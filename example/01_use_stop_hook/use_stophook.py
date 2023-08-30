@@ -5,6 +5,7 @@
 # Two usage of this script
 #
 # Usage1 - Configure this script with specific search_symbol_name
+#
 # Step 1: place this script file in your source code repo root folder
 # Step 2: add this line to ~/.lldbinit
 #         command script import ~/path/to/use_stophook.py
@@ -13,6 +14,10 @@
 #
 # Usage2 - Configure specific search_symbol_name in .lldbinit file
 #
+# The example:
+# command script import ~/lldb_scripts/example/01_use_stop_hook/use_stophook.py
+# target stop-hook add -P use_stophook.StopHook -k "symbol" -v "x::y::z::CreateSomething" -k "repo_root" -v "~/path/to/repo/root"
+# br set -M "x::y::z::CreateSomething"
 # 
 
 # Usage1
@@ -82,7 +87,7 @@ class StopHook:
            common_suffix, compiled_prefix, local_prefix = self.find_common_suffix(source_file_path, local_source_file_path)
            print(f"[stop-hook] compiled_prefix: {compiled_prefix}")
            print(f"[stop-hook] local_prefix: {local_prefix}")
-           target.GetDebugger().HandleCommand("settings set target.source-map '%s' '%s'" % (compiled_prefix, local_prefix))
+           target.GetDebugger().HandleCommand("settings append target.source-map '%s' '%s'" % (compiled_prefix, local_prefix))
         else:
            print(f'[stop-hook] not find file: {file_name}')
 
