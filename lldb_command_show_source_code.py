@@ -105,7 +105,7 @@ def get_pod_version(pod_name, executable_path):
 
     podfile_lock_file_path = get_podfile_lock_file_path(derived_data_path)
     if podfile_lock_file_path is None or not os.path.isfile(podfile_lock_file_path):
-        return False
+        return None
     try:
         script_path = os.path.join(os.path.dirname(__file__), 'parse_podfile_lock_file.py')
         output = subprocess.check_output(
@@ -131,7 +131,10 @@ def get_podfile_lock_file_path(derived_data_path):
     print(f'info_plist_path: {info_plist_path}')
     # Note: info.plist is special, can't open as text using Xcode builtin Python3.9
     output = subprocess.check_output(['xcrun', 'defaults', 'read', f'{info_plist_path}', 'WorkspacePath'])
-    output = output.decode('utf-8')
+    # Note: there are some tricks here
+    # 1. decode('utf-8') for xml info.plist
+    # 2. encode('utf-8').decode('unicode_escape') try to fix \uXXX when the path contains chinese characters
+    output = output.decode('utf-8').encode('utf-8').decode('unicode_escape')
     xcodeproj_or_workspace_path = output.strip('\n ')
 
     if xcodeproj_or_workspace_path is None:
