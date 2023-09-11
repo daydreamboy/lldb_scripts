@@ -10,6 +10,7 @@ import json
 import lldbutil
 import shlex
 import subprocess
+import re
 
 
 failedLibs = set()
@@ -290,27 +291,62 @@ def target_source_map(source_info, executable_path, debugger):
         print(f"git_info: {git_info}")
 
         local_source_code_prefix = os.path.join(download_git_repo(git_url, git_commit, pod_name, pod_version), pod_name)
-        new_map_string = f'{pod_build_prefix} {local_source_code_prefix}'
+        new_map_line = f'{pod_build_prefix} {local_source_code_prefix}'
 
         source_map_file_path = os.path.join('/tmp/show_source_code', 'source_map.txt')
         lines = get_saved_map_string(source_map_file_path, local_source_code_prefix)
-        print(f'lines: {lines}')
+        print(f'saved lines: {lines}')
 
-        lines.append(new_map_string)
+        lines.append(new_map_line)
 
+        res = lldb.SBCommandReturnObject()
+        debugger = lldb.debugger
+        interpreter = debugger.GetCommandInterpreter()
+        interpreter.HandleCommand(f'settings show target.source-map', res)
+        if res.Succeeded():
+            # target.source-map (path-map) =
+            # [0] "/Users/path1" -> "/Users/path2"
+            previous_map_string = res.GetOutput()
+            #print(f'previous lines: {previous_map_string}')
+
+            previous_map_string = previous_map_string.replace('target.source-map (path-map) =', '')
+            components = previous_map_string.split('\n')
+            seen_set = set()
+            for component in components:
+                line = component.strip(' \n')
+                if len(line) == 0:
+                    continue
+                pattern = r"^\[\d+\]\s*"
+                line = re.sub(pattern, "", line)
+                line = line.strip(' \n')
+                if len(line) == 0:
+                    continue
+                line = line.replace('" -> "', ' ')
+                line = line.strip(' \"')
+                if len(line) == 0:
+                    continue
+                #print(f'tidy line: {line}')
+                if line in seen_set or line in lines:
+                    continue
+                seen_set.add(line)
+                lines.append(line)
+                    
         map_string = ' '.join(lines)
         source_map_cmd = f'settings set target.source-map {map_string}'
         print(f'execute: {source_map_cmd}')
         print('Starting translate into source code...')
-        debugger.HandleCommand(source_map_cmd)
+        res_of_source_map = lldb.SBCommandReturnObject()
+        debugger.GetCommandInterpreter().HandleCommand(source_map_cmd, res_of_source_map)
+        if res_of_source_map.Succeeded():
+            with open(source_map_file_path, "w") as f:
+                f.write('\n'.join(lines))
+                f.close()
 
-        with open(source_map_file_path, "w") as f:
-            f.write('\n'.join(lines))
-            f.close()
-
-        print('Done!🍺🍺🍺')
-
-        return True
+            print('Done!🍺🍺🍺')
+            return True
+        else:
+            print(f'Failed!{res_of_source_map.GetError()}')
+            return False
 
 
 def process_all_frame_map(executable_path, debugger):
