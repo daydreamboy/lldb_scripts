@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 
-from optparse import OptionParser
+# from optparse import OptionParser
 from urllib.request import urlopen
 
+import argparse
 import lldb
 import os
 import json
@@ -21,6 +22,7 @@ def show_source_code(debugger, command, result, internal_dict):
     
     command_args = shlex.split(command)
 
+    """
     parser = OptionParser()
 
     parser.add_option("-f", "--frame", action="store_true", default=True,
@@ -41,6 +43,27 @@ def show_source_code(debugger, command, result, internal_dict):
                       help="current frame source code debug")
 
     (options, args) = parser.parse_args(command_args)
+    """
+
+    parser = argparse.ArgumentParser(
+        prog='show_source_code',
+        usage='%(prog)s [pod name] [pod version] [options]',
+        epilog='Enjoy the program!😝',
+        description='Translate debugging assembly into source code')
+
+    # Add the arguments
+    parser.add_argument('pod_name', type=str, action='store', default=None, help='the pod name')
+    parser.add_argument('pod_version', type=str, action='store', default=None, help='the pod version')
+
+    # Add the options
+    parser.add_argument("-f", "--frame", action="store_true", default=True, help="current frame source code debug")
+    parser.add_argument("-p", "--process", action="store_true", default=False, help="process all threads frames source code mapping")
+    parser.add_argument("-t", "--thread", action="store_true", default=False, help="current thread all frames source code mapping")
+    parser.add_argument("-c", "--clean", action="store_true", default=False, help="clean global memory data, e.g. env file")
+    parser.add_argument("-d", "--debug", action="store_true", default=False, help="current frame source code debug")
+
+    # Execute the parse_args() method
+    options = parser.parse_args(command_args)
 
     debugger.HandleCommand('settings set frame-format ${function.name}')
     state = lldb.debugger.GetSelectedTarget().GetProcess().GetSelectedThread().GetSelectedFrame().GetDisplayFunctionName()
