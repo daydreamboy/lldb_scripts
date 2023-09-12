@@ -298,39 +298,8 @@ def target_source_map(source_info, executable_path, debugger):
         print(f'saved lines: {lines}')
 
         lines.append(new_map_line)
+        lines = merge_existing_map_lines(lines)
 
-        res = lldb.SBCommandReturnObject()
-        debugger = lldb.debugger
-        interpreter = debugger.GetCommandInterpreter()
-        interpreter.HandleCommand(f'settings show target.source-map', res)
-        if res.Succeeded():
-            # target.source-map (path-map) =
-            # [0] "/Users/path1" -> "/Users/path2"
-            previous_map_string = res.GetOutput()
-            #print(f'previous lines: {previous_map_string}')
-
-            previous_map_string = previous_map_string.replace('target.source-map (path-map) =', '')
-            components = previous_map_string.split('\n')
-            seen_set = set()
-            for component in components:
-                line = component.strip(' \n')
-                if len(line) == 0:
-                    continue
-                pattern = r"^\[\d+\]\s*"
-                line = re.sub(pattern, "", line)
-                line = line.strip(' \n')
-                if len(line) == 0:
-                    continue
-                line = line.replace('" -> "', ' ')
-                line = line.strip(' \"')
-                if len(line) == 0:
-                    continue
-                #print(f'tidy line: {line}')
-                if line in seen_set or line in lines:
-                    continue
-                seen_set.add(line)
-                lines.append(line)
-                    
         map_string = ' '.join(lines)
         source_map_cmd = f'settings set target.source-map {map_string}'
         print(f'execute: {source_map_cmd}')
@@ -347,6 +316,35 @@ def target_source_map(source_info, executable_path, debugger):
         else:
             print(f'Failed!{res_of_source_map.GetError()}')
             return False
+
+
+def merge_existing_map_lines(lines):
+    """Merge the existing map lines before execute settings set command"""
+    res = lldb.SBCommandReturnObject()
+    debugger = lldb.debugger
+    interpreter = debugger.GetCommandInterpreter()
+    interpreter.HandleCommand(f'settings show target.source-map', res)
+    if res.Succeeded():
+        # target.source-map (path-map) =
+        # [0] "/Users/path1" -> "/Users/path2"
+        previous_map_string = res.GetOutput()
+        # print(f'previous lines: {previous_map_string}')
+
+        previous_map_string = previous_map_string.replace('target.source-map (path-map) =', '')
+        components = previous_map_string.split('\n')
+        seen_set = set()
+        for component in components:
+            line = component.strip(' \n')
+            line = re.sub(r"^\[\d+\]\s*", "", line)
+            line = line.replace('" -> "', ' ')
+            line = line.strip(' \"\n')
+            # print(f'tidy line: {line}')
+            if len(line) == 0 or line in seen_set or line in lines:
+                continue
+            seen_set.add(line)
+            # Note: always make existing map lines order first
+            lines.insert(0, line)
+    return lines
 
 
 def process_all_frame_map(executable_path, debugger):
