@@ -62,11 +62,12 @@ def show_source_code(debugger, command, result, internal_dict):
         ci.HandleCommand('source info', res)
         source_info = res.GetOutput(True)
 
-        if source_info is None:
-            print('Error: No debug info for the selected frame')
+        if not res.Succeeded():
+            print(res.GetError().strip())
+            print('[show_source_code] no debug info for the selected frame. Use source info to check again.')
             return
         success = target_source_map(source_info, executable_path, debugger)
-        print(f'[Error] mapping {source_info} failed') if success is False else None
+        print(f'[show_source_code] mapping {source_info} failed') if success is False else None
 
 
 def get_pod_info_dict(source_info):
@@ -80,6 +81,7 @@ def get_pod_info_dict(source_info):
     # the x is sentinel
     sentinel_list = get_env_dict()['pod_name_sentinel'].strip(' \'"').split(',')
 
+    index_before_pod = None
     for sentinel in sentinel_list:
         sentinel = sentinel.strip()
         if sentinel in source_file_path_component_list:
@@ -87,7 +89,7 @@ def get_pod_info_dict(source_info):
             break
 
     if index_before_pod is None:
-        print(f"Error: not find pod with source info: {source_info}")
+        print(f"Error: not find pod with source info `{source_info}`")
         return None
     
     pod_name = source_file_path_component_list[index_before_pod + 1]
