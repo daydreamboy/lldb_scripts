@@ -228,7 +228,7 @@ def download_git_repo(git_url, git_commit, pod_name, pod_version):
     return download_dir
 
 
-def get_saved_map_string(source_map_file_path, current_local_source_code_prefix):
+def get_saved_map_lines(source_map_file_path, current_local_source_code_prefix):
     map_string_lines = []
     if os.path.isfile(source_map_file_path):
         with open(source_map_file_path, "r") as f:
@@ -294,8 +294,8 @@ def target_source_map(source_info, executable_path, debugger):
         new_map_line = f'{pod_build_prefix} {local_source_code_prefix}'
 
         source_map_file_path = os.path.join('/tmp/show_source_code', 'source_map.txt')
-        lines = get_saved_map_string(source_map_file_path, local_source_code_prefix)
-        print(f'saved lines: {lines}')
+        lines = get_saved_map_lines(source_map_file_path, local_source_code_prefix)
+        print(f'saved map lines: {lines}')
 
         lines.append(new_map_line)
         lines = merge_existing_map_lines(lines)
@@ -383,7 +383,7 @@ def thread_all_frame_map(executable_path, debugger):
 
 def preload_map_info_on_lldb_start(debugger):
     source_map_file_path = os.path.join('/tmp/show_source_code', 'source_map.txt')
-    lines = get_saved_map_string(source_map_file_path, '')
+    lines = get_saved_map_lines(source_map_file_path, '')
     if len(lines) == 0:
         return 
     print(f'lines: {lines}')
