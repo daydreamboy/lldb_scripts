@@ -3,6 +3,7 @@
 
 # from optparse import OptionParser
 from urllib.request import urlopen
+from urllib.error import URLError
 
 import argparse
 import lldb
@@ -22,6 +23,7 @@ def show_source_code(debugger, command, result, internal_dict):
     
     command_args = shlex.split(command)
 
+    # OptionParser is deprecated in Python3.2
     """
     parser = OptionParser()
 
@@ -47,13 +49,14 @@ def show_source_code(debugger, command, result, internal_dict):
 
     parser = argparse.ArgumentParser(
         prog='show_source_code',
-        usage='%(prog)s [pod name] [pod version] [options]',
+        usage='%(prog)s [pod_name|pod_name pod_version] [options]',
         epilog='Enjoy the program!😝',
-        description='Translate debugging assembly into source code')
+        description='Translate debugging assembly into source code',
+        formatter_class=argparse.RawTextHelpFormatter)
 
     # Add the arguments
-    parser.add_argument('pod_name', type=str, action='store', default=None, help='the pod name')
-    parser.add_argument('pod_version', type=str, action='store', default=None, help='the pod version')
+    parser.add_argument('pod_name', nargs='?', type=tool_validate_pod_name, action='store', default=None, help='the pod name')
+    parser.add_argument('pod_version', nargs='?', type=tool_validate_pod_version, action='store', default=None, help='the pod version')
 
     # Add the options
     parser.add_argument("-f", "--frame", action="store_true", default=True, help="current frame source code debug")
@@ -70,7 +73,26 @@ def show_source_code(debugger, command, result, internal_dict):
     executable_path = debugger.GetSelectedTarget().GetExecutable().GetDirectory()
     print("executablePath: " + executable_path)
 
-    if options.thread:
+    if options.pod_name and (options.pod_version or options.pod_version is None):
+        pod_name = options.pod_name
+        pod_version = options.pod_version if options.pod_version else get_pod_version(pod_name, executable_path)
+        if pod_version is None:
+            print(f'[Error] must provide pod version for {pod_name} which given in CLI command or Podfile.lock')
+            return
+        git_info = get_git_info_dict(pod_name, pod_version)
+        if git_info is None:
+            print(f'[Error] get git info failed: {git_info}')
+            return
+        git_url = git_info['git_url']
+        git_commit = git_info['git_commit']
+        print(f"git_info: {git_info}")
+        download_dir = download_git_repo(git_url, git_commit, pod_name, pod_version)
+        print(f'Download source code at {download_dir}')
+        print('Done!🍺🍺🍺')      
+    elif options.pod_name is None and options.pod_version:
+        print(f'[Error] need provide a name for pod version `{options.pod_version}`')
+        parser.print_help()
+    elif options.thread:
         print("process all frames target source map")
         thread_all_frame_map(executable_path, debugger)
     elif options.process:
@@ -78,7 +100,7 @@ def show_source_code(debugger, command, result, internal_dict):
         process_all_frame_map(executable_path, debugger)
     elif options.clean:
         globals().pop('_show_source_code_env', None)
-        print("Done!🍺🍺🍺")
+        print('Done!🍺🍺🍺')
     else:
         ci = debugger.GetCommandInterpreter()
         res = lldb.SBCommandReturnObject()
@@ -213,8 +235,19 @@ def get_git_info_dict(pod_name, pod_version):
         url = env_dict['podspec_query_api'].strip(" '\"")
         formatted_url = url.format(pod_name=pod_name, pod_version=pod_version)
         print(f'request url: {formatted_url}')
-        content = urlopen(formatted_url).read()
-        content_dict = json.loads(content)
+        try:
+            content = urlopen(formatted_url).read()
+        except URLError as e:
+            print(f"[Error] URL Error occurred: {e}")
+            return None
+        except Exception as e:
+            print(f"[Error] An error occurred: {e}")
+            return None
+        try:
+            content_dict = json.loads(content)
+        except ValueError:
+            print(f"[Error] need a valid JSON string, but got: `{content}`")
+            return None
     else:
         print(f'Use cached podspec: {podspec_file_path}')
 
@@ -286,6 +319,18 @@ def tool_get_value_by_key_path(data, key_path):
     return value
 
 
+def tool_validate_pod_name(value):
+    if not re.search('[a-zA-Z]', value):
+        raise argparse.ArgumentTypeError(f"pod_name must contain at least one letter, but it's {value}")
+    return value
+
+
+def tool_validate_pod_version(value):
+    if not re.search('[0-9]', value):
+        raise argparse.ArgumentTypeError(f"pod_version must contain at least one digit, but it's {value}")
+    return value
+
+
 def target_source_map(source_info, executable_path, debugger):
     print("source_info: " +  source_info)
     source_file_path = source_info.split(": ").pop().split(':')[0]
@@ -311,9 +356,13 @@ def target_source_map(source_info, executable_path, debugger):
             return False
 
         git_info = get_git_info_dict(pod_name, pod_version)
+        if git_info is None:
+            print(f'[Error] get git info failed: {git_info}')
+            return False
+        print(f"git_info: {git_info}")
+
         git_url = git_info['git_url']
         git_commit = git_info['git_commit']
-        print(f"git_info: {git_info}")
 
         local_source_code_prefix = os.path.join(download_git_repo(git_url, git_commit, pod_name, pod_version), pod_name)
         new_map_line = f'{pod_build_prefix} {local_source_code_prefix}'
