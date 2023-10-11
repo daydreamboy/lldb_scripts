@@ -183,7 +183,11 @@ command regex pimage 's/(.+)/expression -lobjc -O -- @import Foundation; NSMutab
 command regex paddr -h "Print memory address in Swift code" -s "paddr 0x123" -- 's/(.+)/expression -lswift -O -- unsafeBitCast(%1, to: NSObject.self)/'
 ```
 
+或者
 
+```python
+command regex paddr -h "Print memory address in Swift code" -s "paddr 0x123" -- 's/(.+)/expression -lswift -O -- unsafeBitCast(%1, to: AnyObject.self)/'
+```
 
 
 
