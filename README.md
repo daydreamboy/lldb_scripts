@@ -241,6 +241,22 @@ ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> .
 
 
 
+TODO
+
+自动关联本地的dSYM文件
+
+思路：
+
+* br设置main函数断点
+* target stop-hook，获取当前image的uuid
+* `mdfind "com_apple_xcode_dsym_uuids == 58028507-63B8-32C3-AD1C-9FDB2C8251DC"`，获取dSYM为路径
+* 使用add-dsym设置dSYM
+* 然后执行continue
+
+
+
+
+
 ## 4、配置`.lldbinit`文件
 
 ### (1) lldb_load_commands.py[^2]
