@@ -241,7 +241,7 @@ ignore_specified_objc_exceptions name:<exception name1> name:<exception name2> .
 
 
 
-TODO
+### (3) auto_add_dsym命令
 
 自动关联本地的dSYM文件
 
